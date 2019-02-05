@@ -52,14 +52,23 @@ void Post_processing::initial_for_post_processing() {
     std::sort(counter.begin(), counter.end(), [&](COUNTER& a,COUNTER& b ) {return b< a;});	// sort by flag
 
     // According other attribute to do maze routing
-    for (int i = 0; i < (int) construct_2d_tree.two_pin_list.size(); ++i) {
-        int id = counter[i].id;
-        Two_pin_element_2d& twopList = construct_2d_tree.two_pin_list[id];
-        // call maze routing
-        if (counter[i].total_overflow > 0) {
-            rangeRouter.range_router(twopList, 3);
-        }
-    }
+//    for (int i = 0; i < (int) construct_2d_tree.two_pin_list.size(); ++i) {
+//        int id = counter[i].id;
+//        Two_pin_element_2d& twopList = construct_2d_tree.two_pin_list[id];
+//        // call maze routing
+//        if (counter[i].total_overflow > 0) {
+//            rangeRouter.range_router(twopList, 3);
+//        }
+//    }
+
+    std::for_each(counter.begin(), counter.end(), [&](COUNTER& a ) {
+		Two_pin_element_2d& twopList = construct_2d_tree.two_pin_list[a.id];
+		if (a.total_overflow > 0){
+			rangeRouter.range_router(twopList, 3);
+		}
+	});
+
+    // PRIMEIRA
 
 }
 

@@ -200,43 +200,33 @@ std::string NTHUR::RangeRouter::printIfBound(const Rectangle& r, const Rectangle
 void NTHUR::RangeRouter::range_router(Two_pin_element_2d& two_pin, int version) {
     if (!congestion.check_path_no_overflow(two_pin.path, two_pin.net_id, false)) {
         ++total_twopin;
-
         construct_2d_tree.NetDirtyBit[two_pin.net_id] = true;
-
         congestion.update_congestion_map_remove_two_pin_net(two_pin.path, two_pin.net_id);
-
         std::vector<Coordinate_2d> bound_path(two_pin.path);
-
         Bound bound;
         bool find_path_flag = monotonicRouter.monotonicRoute(two_pin, bound, bound_path);
-
         if (version == 2) {
             two_pin.done = construct_2d_tree.done_iter;
         }
         if ((find_path_flag == false) || !congestion.check_path_no_overflow(bound_path, two_pin.net_id, true)) {
             Coordinate_2d start;
             Coordinate_2d end;
-
             start.x = min(two_pin.pin1.x, two_pin.pin2.x);
             start.y = min(two_pin.pin1.y, two_pin.pin2.y);
             end.x = max(two_pin.pin1.x, two_pin.pin2.x);
             end.y = max(two_pin.pin1.y, two_pin.pin2.y);
-
             int size = construct_2d_tree.BOXSIZE_INC;
             start.x = max(0, start.x - size);
             start.y = max(0, start.y - size);
             end.x = min(construct_2d_tree.rr_map.get_gridx() - 1, end.x + size);
             end.y = min(construct_2d_tree.rr_map.get_gridy() - 1, end.y + size);
-
             find_path_flag = construct_2d_tree.mazeroute_in_range.mm_maze_route_p(two_pin, bound.cost, bound.distance, bound.via_num, start, end, version);
 
             if (find_path_flag == false) {
                 two_pin.path.insert(two_pin.path.begin(), bound_path.begin(), bound_path.end());
             }
         }
-
         congestion.update_congestion_map_insert_two_pin_net(two_pin);
-
     }
 }
 
@@ -285,6 +275,9 @@ void NTHUR::RangeRouter::specify_all_range(boost::multi_array<Point_fc, 2>& grid
         sort(ele.grid_edge_vector.begin(), ele.grid_edge_vector.end(), [&](const Grid_edge_element& a, const Grid_edge_element& b) {
             return comp_grid_edge( a, b);
         });
+//        std::sort(ele.grid_edge_vector.begin(), ele.grid_edge_vector.end(), [&](const Grid_edge_element& a, const Grid_edge_element& b) {
+//			return comp_grid_edge( a, b);
+//		});
 
         for (Grid_edge_element& gridEdge : ele.grid_edge_vector) {
             Coordinate_2d& c = gridEdge.grid;
@@ -324,6 +317,11 @@ void NTHUR::RangeRouter::specify_all_range(boost::multi_array<Point_fc, 2>& grid
 
     sort(twopin_list.begin(), twopin_list.end(), [&](const Two_pin_element_2d *a, const Two_pin_element_2d *b) {
         return Two_pin_element_2d::comp_stn_2pin(*a,*b);});
+//    std::for_each((int) twopin_list.begin(),(int) twopin_list.size(), int &it) {
+//    	if(twopin_list[it]->boxSize() == 1)
+//    		break;
+//    	range_router(*twopin_list[it], 2);
+//    });
     for (int i = 0; i < (int) twopin_list.size(); ++i) {
         if (twopin_list[i]->boxSize() == 1)
             break;

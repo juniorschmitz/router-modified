@@ -234,7 +234,9 @@ void Construct_2d_tree::gen_FR_congestion_map() {
     for (uint32_t i = 0; i < rr_map.get_netNumber(); ++i) {
         sort_net.push_back(&rr_map.get_net(i));
     }
+
     sort(sort_net.begin(), sort_net.end(), [&]( const Net* a, const Net* b ) {return Net::comp_net(*a,*b);});
+//    std::sort(sort_net.begin(), sort_net.end(), [&]( const Net* a, const Net* b ) {return Net::comp_net(*a,*b);});
 
 //Now begins the initial routing by pattern routing
 //Edge shifting will also be applied to the routing.
@@ -264,7 +266,6 @@ void Construct_2d_tree::gen_FR_congestion_map() {
                 NetDirtyBit[L_path.net_id] = true;
                 congestion.update_congestion_map_insert_two_pin_net(L_path);
                 SPDLOG_TRACE(log_sp, "L_path {}", L_path.toString());
-
             }
         }
 
@@ -663,7 +664,7 @@ void Construct_2d_tree::edge_shifting(TreeFlute& t, int j) {
 /* sort by bounding box size */
 void Construct_2d_tree::output_2_pin_list() {
 
-    std::sort(two_pin_list.begin(), two_pin_list.end(), [&](Two_pin_element_2d &a, Two_pin_element_2d &b) {
+    sort(two_pin_list.begin(), two_pin_list.end(), [&](Two_pin_element_2d &a, Two_pin_element_2d &b) {
         return Two_pin_element_2d::comp_2pin_net_from_path(a,b);
     });
 }
