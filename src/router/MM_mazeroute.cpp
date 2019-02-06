@@ -44,7 +44,6 @@ Multisource_multisink_mazeroute::Multisource_multisink_mazeroute(Construct_2d_tr
     net_tree.resize(construct_2d_tree.rr_map.get_netNumber());
 
     //initialization
-
     for (u_int32_t i = 0; i < mmm_map.size(); ++i) {
         for (u_int32_t j = 0; j < mmm_map[0].size(); ++j) {
             mmm_map[i][j].coor.set(i, j);
@@ -78,6 +77,25 @@ void Multisource_multisink_mazeroute::adjust_twopin_element() {
     element->pin2 = new_pin2;
 
     int flag = 0;
+
+//    std::vector<std::string> foo;
+//    std::for_each(
+//        std::execution::par_unseq,
+//        foo.begin(),
+//        foo.end(),
+//        [](auto&& item)
+//        {
+//            //do stuff with item
+//        });
+
+//    std::for_each(pin1_v->neighbor.begin(), pin1_v->neighbor.end(), [&](auto it) {
+//    	if ((*it) == pin2_v) {
+//    		pin1_v->neighbor.erase(it);
+//			flag = 1;
+//			break;
+//    	}
+//    });
+    //ALMOST1
     for (auto it = pin1_v->neighbor.begin(); it != pin1_v->neighbor.end(); ++it) {
         if ((*it) == pin2_v) {
             pin1_v->neighbor.erase(it);
@@ -88,6 +106,15 @@ void Multisource_multisink_mazeroute::adjust_twopin_element() {
     assert(flag == 1);
 
     flag = 0;
+
+//    std::for_each(pin2_v->neighbor.begin(), pin2_v->neighbor.end(), [&](auto it) {
+//		if ((*it) == pin1_v) {
+//			pin2_v->neighbor.erase(it);
+//			flag = 1;
+//			break;
+//		}
+//	});
+
     for (auto it = pin2_v->neighbor.begin(); it != pin2_v->neighbor.end(); ++it) {
         if ((*it) == pin1_v) {
             pin2_v->neighbor.erase(it);
@@ -102,13 +129,44 @@ void Multisource_multisink_mazeroute::adjust_twopin_element() {
     Vertex_mmm* v2 = nullptr;
 
     vector<Vertex_mmm>& vect = net_tree[net_id];
-    for (vector<Vertex_mmm>::iterator it = vect.begin(); it != vect.end() && (v1 == nullptr || v2 == nullptr); ++it) {
-        if (it->coor == new_pin1) {
-            v1 = &(*it);
-        } else if (it->coor == new_pin2) {
-            v2 = &(*it);
-        }
-    }
+
+//    std::vector<std::string> foo;
+//	std::for_each(
+//		std::execution::par_unseq,
+//		foo.begin(),
+//		foo.end(),
+//		[](auto&& item)
+//		{
+//			//do stuff with item
+//		});
+
+//    std::for_each(counter.begin(), counter.end(), [&](COUNTER& a ) {
+    //    std::for_each(vect.begin(), (vect.end() && (v1 == nullptr || v2 == nullptr)), [&](vect& item)
+//    std::for_each(vect.begin(), (vect.end() && (v1 == nullptr || v2 == nullptr)),  [&](vector<Vertex_mmm>::iterator item)
+//    	{
+//    		if (item->coor == new_pin1) {
+//    			v1 = &(*item);
+//    		}
+//    		if(item->coor == new_pin2) {
+//    			v2 = &(*item);
+//    		}
+//		});
+
+//    std::for_each(vect.begin(), vect.end(), [&](Vertex_mmm it) {
+    std::for_each(vect.begin(), vect.end(), [&](auto&& it) {
+		if (it.coor == new_pin1) {
+			v1 = &(it);
+		} else if (it.coor == new_pin2) {
+			v2 = &(it);
+		}
+	});
+//    for (vector<Vertex_mmm>::iterator it = vect.begin(); it != vect.end() && (v1 == nullptr || v2 == nullptr); ++it) {
+//        if (it->coor == new_pin1) {
+//            v1 = &(*it);
+//        } else if (it->coor == new_pin2) {
+//            v2 = &(*it);
+//        }
+//    }
     assert(v1 != nullptr);
     assert(v2 != nullptr);
 
@@ -191,6 +249,7 @@ void Multisource_multisink_mazeroute::setup_pqueue() {
 //
 //
 //        )}; first trial
+
         for (int i = 0; i < t.number; ++i) {
 
             Coordinate_2d c { (int) t.branch[i].x, (int) t.branch[i].y };
@@ -405,27 +464,33 @@ void Multisource_multisink_mazeroute::putNetOnColorMap() {
 }
 
 bool Multisource_multisink_mazeroute::smaller_than_lower_bound(double total_cost, int distance, int via_num, double bound_cost, int bound_distance, int bound_via_num) {
-//	int total_minus_bound = total_cost - bound_cost;
-//	if (total_minus_bound < neg_error_bound || distance < bound_distance) {
-//		return true;
-//	}
-//	if (total_minus_bound > error_bound || distance > bound_distance) {
-//		return false;
-//	}
-//	return (via_num < bound_via_num);
-    if ((total_cost - bound_cost) < neg_error_bound)
-        return true;
-    else if ((total_cost - bound_cost) > error_bound)
-        return false;
-    else {
-        if (distance < bound_distance)
-            return true;
-        else if (distance > bound_distance)
-            return false;
-        else {
-            return (via_num < bound_via_num);
-        }
-    }
+	int total_minus_bound = total_cost - bound_cost;
+	if (total_minus_bound < neg_error_bound) {
+		return true;
+	}
+	if (total_minus_bound > error_bound) {
+		return false;
+	}
+	if(distance < bound_distance) {
+		return true;
+	}
+	if(distance > bound_distance) {
+		return false;
+	}
+	return (via_num < bound_via_num);
+//    if ((total_cost - bound_cost) < neg_error_bound)
+//        return true;
+//    else if ((total_cost - bound_cost) > error_bound)
+//        return false;
+//    else {
+//        if (distance < bound_distance)
+//            return true;
+//        else if (distance > bound_distance)
+//            return false;
+//        else {
+//            return (via_num < bound_via_num);
+//        }
+//    }
 }
 
 } // namespace NTHUR
