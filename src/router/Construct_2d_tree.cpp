@@ -235,41 +235,70 @@ void Construct_2d_tree::gen_FR_congestion_map() {
         sort_net.push_back(&rr_map.get_net(i));
     }
 
-    sort(sort_net.begin(), sort_net.end(), [&]( const Net* a, const Net* b ) {return Net::comp_net(*a,*b);});
+    std::sort(sort_net.begin(), sort_net.end(), [&]( const Net* a, const Net* b ) {return Net::comp_net(*a,*b);});
 //    std::sort(sort_net.begin(), sort_net.end(), [&]( const Net* a, const Net* b ) {return Net::comp_net(*a,*b);});
 
 //Now begins the initial routing by pattern routing
 //Edge shifting will also be applied to the routing.
-    for (const Net* it : sort_net) {
-        int netId = it->id;
-        TreeFlute& ftreeId = flutetree[netId];
-        edge_shifting(ftreeId, netId);
+    std::for_each(sort_net.begin(), sort_net.end(), [&](auto&& it) {
+    	int netId = it->id;
+		TreeFlute& ftreeId = flutetree[netId];
+		edge_shifting(ftreeId, netId);
 
-        net_flutetree[netId] = ftreeId;
+		net_flutetree[netId] = ftreeId;
 
-        /*remove demand*/
-        bbox_route(bbox_2pin_list[netId], -0.5);
+		/*remove demand*/
+		bbox_route(bbox_2pin_list[netId], -0.5);
+		for (int k = 0; k < ftreeId.number; ++k) {
 
-        for (int k = 0; k < ftreeId.number; ++k) {
+			Branch& branch = ftreeId.branch[k];
+			Coordinate_2d c1 { (int) branch.x, (int) branch.y };
+			Coordinate_2d c2 { (int) ftreeId.branch[branch.n].x, (int) ftreeId.branch[branch.n].y };
+			SPDLOG_TRACE(log_sp, "branch k:{} c1:{} c2:{}", k, c1.toString(), c2.toString());
+			if (c1 != c2) {
+				/*choose the L-shape with lower congestion to assign new demand 1*/
+				Two_pin_element_2d L_path;
+				L_pattern_route(c1, c2, L_path, netId);
 
-            Branch& branch = ftreeId.branch[k];
-            Coordinate_2d c1 { (int) branch.x, (int) branch.y };
-            Coordinate_2d c2 { (int) ftreeId.branch[branch.n].x, (int) ftreeId.branch[branch.n].y };
-            SPDLOG_TRACE(log_sp, "branch k:{} c1:{} c2:{}", k, c1.toString(), c2.toString());
-            if (c1 != c2) {
-                /*choose the L-shape with lower congestion to assign new demand 1*/
-                Two_pin_element_2d L_path;
-                L_pattern_route(c1, c2, L_path, netId);
+				/*insert 2pin_path into this net*/
+				net_2pin_list[netId].push_back(L_path);
+				NetDirtyBit[L_path.net_id] = true;
+				congestion.update_congestion_map_insert_two_pin_net(L_path);
+				SPDLOG_TRACE(log_sp, "L_path {}", L_path.toString());
+			}
+		}
+    });
 
-                /*insert 2pin_path into this net*/
-                net_2pin_list[netId].push_back(L_path);
-                NetDirtyBit[L_path.net_id] = true;
-                congestion.update_congestion_map_insert_two_pin_net(L_path);
-                SPDLOG_TRACE(log_sp, "L_path {}", L_path.toString());
-            }
-        }
-
-    }
+//    for (const Net* it : sort_net) {
+//        int netId = it->id;
+//        TreeFlute& ftreeId = flutetree[netId];
+//        edge_shifting(ftreeId, netId);
+//
+//        net_flutetree[netId] = ftreeId;
+//
+//        /*remove demand*/
+//        bbox_route(bbox_2pin_list[netId], -0.5);
+//
+//        for (int k = 0; k < ftreeId.number; ++k) {
+//
+//            Branch& branch = ftreeId.branch[k];
+//            Coordinate_2d c1 { (int) branch.x, (int) branch.y };
+//            Coordinate_2d c2 { (int) ftreeId.branch[branch.n].x, (int) ftreeId.branch[branch.n].y };
+//            SPDLOG_TRACE(log_sp, "branch k:{} c1:{} c2:{}", k, c1.toString(), c2.toString());
+//            if (c1 != c2) {
+//                /*choose the L-shape with lower congestion to assign new demand 1*/
+//                Two_pin_element_2d L_path;
+//                L_pattern_route(c1, c2, L_path, netId);
+//
+//                /*insert 2pin_path into this net*/
+//                net_2pin_list[netId].push_back(L_path);
+//                NetDirtyBit[L_path.net_id] = true;
+//                congestion.update_congestion_map_insert_two_pin_net(L_path);
+//                SPDLOG_TRACE(log_sp, "L_path {}", L_path.toString());
+//            }
+//        }
+//
+//    }
 
     SPDLOG_TRACE(log_sp, "generate L-shape congestion map in stage1 successfully ");
 

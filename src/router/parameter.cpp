@@ -112,8 +112,8 @@ void ParameterSet::push_parameter(int a, int b, int d, int e, int f, int g, int 
 ParameterAnalyzer::ParameterAnalyzer(int argc, char* argv[]) :
         argc(argc), argv(argv), type(1), routingParam() {
     analyze2();
-    cout << "Input file: \"" << inputFileName << "\"" << endl;
-    cout << "Output file: \"" << outputFileName << "\"" << endl;
+//    cout << "Input file: \"" << inputFileName << "\"" << endl;
+//    cout << "Output file: \"" << outputFileName << "\"" << endl;
 }
 void ParameterAnalyzer::analyze2() {
     char cmd;
@@ -132,74 +132,77 @@ void ParameterAnalyzer::analyze2() {
         }
         switch (cmd) {
         case 0:
-            cout << "Wrong parameter entered!" << endl;
+//            cout << "Wrong parameter entered!" << endl;
             break;
         case 1:
-            cout << "Part 2 Max Iteration set to " << parameter << endl;
+//            cout << "Part 2 Max Iteration set to " << parameter << endl;
             parameterSet.iter_2d = atoi(parameter.c_str());
             routingParam.set_iteration_p2(atoi(parameter.c_str()));
             break;
         case 2:
-            cout << "Part 3 Max Iteration set to " << parameter << endl;
+//            cout << "Part 3 Max Iteration set to " << parameter << endl;
             parameterSet.iter_p3 = atoi(parameter.c_str());
             routingParam.set_iteration_p3(atoi(parameter.c_str()));
             break;
         case 3:
-            cout << "P2 to P3 overflow threashold set to " << parameter << endl;
+//            cout << "P2 to P3 overflow threashold set to " << parameter << endl;
             parameterSet.overflow_threshold = atoi(parameter.c_str());
             routingParam.set_overflow_threshold(atoi(parameter.c_str()));
             break;
         case 4:
-            cout << "P3 Initial Box Size set to " << parameter << endl;
+//            cout << "P3 Initial Box Size set to " << parameter << endl;
             routingParam.set_init_box_size_p3(atoi(parameter.c_str()));
             break;
         case 5:
-            cout << "P3 Box Expand Size set to " << parameter << endl;
+//            cout << "P3 Box Expand Size set to " << parameter << endl;
             routingParam.set_box_size_inc_p3(atoi(parameter.c_str()));
 
             break;
         case 6:
-            cout << "P2 BOXSIZE_INC set to " << parameter << endl;
+//            cout << "P2 BOXSIZE_INC set to " << parameter << endl;
             routingParam.BOXSIZE_INC = atoi(parameter.c_str());
             routingParam.set_init_box_size_p2(atoi(parameter.c_str()));
             break;
         case 7:
-            cout << "P2 Box Expand Size set to " << parameter << endl;
+//            cout << "P2 Box Expand Size set to " << parameter << endl;
             routingParam.set_box_size_inc_p2(atoi(parameter.c_str()));
             break;
         case 8:
-            cout << "Monotonic Routing ";
+//            cout << "Monotonic Routing ";
             enable = atoi(parameter.c_str()) == 1;
             routingParam.set_monotonic_en(enable);
-            if (enable)
-                cout << "Enabled!" << endl;
-            else
-                cout << "Disabled!" << endl;
+//            if(!enable)
+//            	break;
             break;
+//            if (enable)
+//                cout << "Enabled!" << endl;
+//            else
+//                cout << "Disabled!" << endl;
+//            break;
         case 9:
-            cout << "Simple Mode enable - Routing Parameter Auto Fitting!" << endl;
+//            cout << "Simple Mode enable - Routing Parameter Auto Fitting!" << endl;
             routingParam.set_simple_mode_en(true);
             break;
         case 'i':
-            cout << "Input file " << parameter << endl;
+//            cout << "Input file " << parameter << endl;
             this->inputFileName.append(parameter);
             this->analyzeInput();
             parameterSet.setInputfile(parameter);
             break;
         case 'I':
-            cout << "Input file " << parameter << endl;
+//            cout << "Input file " << parameter << endl;
             this->inputFileName.append(parameter);
             parameterSet.setInputfile(parameter);
             break;
         case 'o':
-            cout << "Output file " << parameter << endl;
+//            cout << "Output file " << parameter << endl;
             this->outputFileName.append(parameter);
             this->analyzeOutput();
             parameterSet.setOutputfile(parameter);
             defineOutput = true;
             break;
         case '?':
-            cout << "Unknown parameter!" << endl;
+//            cout << "Unknown parameter!" << endl;
             break;
         }
     }

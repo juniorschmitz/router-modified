@@ -9,6 +9,7 @@
 #include "Congestion.h"
 #include "Construct_2d_tree.h"
 #include "MM_mazeroute.h"
+#include <boost/foreach.hpp>
 
 //#define SPDLOG_TRACE_ON
 #include "../spdlog/spdlog.h"
@@ -272,12 +273,12 @@ void NTHUR::RangeRouter::specify_all_range(boost::multi_array<Point_fc, 2>& grid
     for (int i = interval_list.size() - 1; i >= 0; --i) {
         Interval_element& ele = interval_list[i];
         range_vector.clear();
-        sort(ele.grid_edge_vector.begin(), ele.grid_edge_vector.end(), [&](const Grid_edge_element& a, const Grid_edge_element& b) {
-            return comp_grid_edge( a, b);
-        });
-//        std::sort(ele.grid_edge_vector.begin(), ele.grid_edge_vector.end(), [&](const Grid_edge_element& a, const Grid_edge_element& b) {
-//			return comp_grid_edge( a, b);
-//		});
+//        sort(ele.grid_edge_vector.begin(), ele.grid_edge_vector.end(), [&](const Grid_edge_element& a, const Grid_edge_element& b) {
+//            return comp_grid_edge( a, b);
+//        });
+        std::sort(ele.grid_edge_vector.begin(), ele.grid_edge_vector.end(), [&](const Grid_edge_element& a, const Grid_edge_element& b) {
+			return comp_grid_edge( a, b);
+		});
 
         for (Grid_edge_element& gridEdge : ele.grid_edge_vector) {
             Coordinate_2d& c = gridEdge.grid;
@@ -297,7 +298,7 @@ void NTHUR::RangeRouter::specify_all_range(boost::multi_array<Point_fc, 2>& grid
             query_range_2pin(r, twopin_list, gridCell);
         }
 
-        sort(twopin_list.begin(), twopin_list.end(), [&](const Two_pin_element_2d *a, const Two_pin_element_2d *b) {
+        std::sort(twopin_list.begin(), twopin_list.end(), [&](const Two_pin_element_2d *a, const Two_pin_element_2d *b) {
             return Two_pin_element_2d::comp_stn_2pin(*a,*b);});
 
         for (Two_pin_element_2d * two_pin : twopin_list) {
@@ -315,8 +316,24 @@ void NTHUR::RangeRouter::specify_all_range(boost::multi_array<Point_fc, 2>& grid
         }
     }
 
-    sort(twopin_list.begin(), twopin_list.end(), [&](const Two_pin_element_2d *a, const Two_pin_element_2d *b) {
+    std::sort(twopin_list.begin(), twopin_list.end(), [&](const Two_pin_element_2d *a, const Two_pin_element_2d *b) {
         return Two_pin_element_2d::comp_stn_2pin(*a,*b);});
+//    std::for_each(twopin_list.begin(), twopin_list.end(), [&](auto&& it)
+//    {
+//    	if(it->boxSize() == 1){
+//    		break;
+//    	}
+//    	range_router(it.index, 2);
+//    });
+
+//    BOOST_FOREACH(twopin_list.begin(), twopin_list.end(), [&](auto&& it)
+//	{
+//		if(it->boxSize() == 1){
+//			break;
+//		}
+//		range_router(it.index, 2);
+//	});
+
 //    std::for_each((int) twopin_list.begin(),(int) twopin_list.size(), int &it) {
 //    	if(twopin_list[it]->boxSize() == 1)
 //    		break;
