@@ -3,7 +3,7 @@ require 'pry'
 options = '--p2-max-iteration=150 --p2-init-box-size=25 --p2-box-expand-size=20 --overflow-threshold=300 --p3-max-iteration=20 --p3-init-box-size=15 --p3-box-expand-size=10'
 
 benchs = {
-    adaptec1: 'adaptec1.capo70.3d.35.50.90.gr'
+    adaptec1: 'adaptec1.capo70.3d.35.50.90.gr',
     adaptec2: 'adaptec2.mpl60.3d.35.20.100.gr',
     adaptec3: 'adaptec3.dragon70.3d.30.50.90.gr',
     adaptec4: 'adaptec4.aplace60.3d.30.50.90.gr',
