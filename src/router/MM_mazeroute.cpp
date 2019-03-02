@@ -78,24 +78,7 @@ void Multisource_multisink_mazeroute::adjust_twopin_element() {
 
     int flag = 0;
 
-//    std::vector<std::string> foo;
-//    std::for_each(
-//        std::execution::par_unseq,
-//        foo.begin(),
-//        foo.end(),
-//        [](auto&& item)
-//        {
-//            //do stuff with item
-//        });
-
-//    std::for_each(pin1_v->neighbor.begin(), pin1_v->neighbor.end(), [&](auto it) {
-//    	if ((*it) == pin2_v) {
-//    		pin1_v->neighbor.erase(it);
-//			flag = 1;
-//			break;
-//    	}
-//    });
-    //ALMOST1
+    // try to use find_if here after
     for (auto it = pin1_v->neighbor.begin(); it != pin1_v->neighbor.end(); ++it) {
         if ((*it) == pin2_v) {
             pin1_v->neighbor.erase(it);
@@ -106,14 +89,6 @@ void Multisource_multisink_mazeroute::adjust_twopin_element() {
     assert(flag == 1);
 
     flag = 0;
-
-//    std::for_each(pin2_v->neighbor.begin(), pin2_v->neighbor.end(), [&](auto it) {
-//		if ((*it) == pin1_v) {
-//			pin2_v->neighbor.erase(it);
-//			flag = 1;
-//			break;
-//		}
-//	});
 
     for (auto it = pin2_v->neighbor.begin(); it != pin2_v->neighbor.end(); ++it) {
         if ((*it) == pin1_v) {
@@ -130,29 +105,6 @@ void Multisource_multisink_mazeroute::adjust_twopin_element() {
 
     vector<Vertex_mmm>& vect = net_tree[net_id];
 
-//    std::vector<std::string> foo;
-//	std::for_each(
-//		std::execution::par_unseq,
-//		foo.begin(),
-//		foo.end(),
-//		[](auto&& item)
-//		{
-//			//do stuff with item
-//		});
-
-//    std::for_each(counter.begin(), counter.end(), [&](COUNTER& a ) {
-    //    std::for_each(vect.begin(), (vect.end() && (v1 == nullptr || v2 == nullptr)), [&](vect& item)
-//    std::for_each(vect.begin(), (vect.end() && (v1 == nullptr || v2 == nullptr)),  [&](vector<Vertex_mmm>::iterator item)
-//    	{
-//    		if (item->coor == new_pin1) {
-//    			v1 = &(*item);
-//    		}
-//    		if(item->coor == new_pin2) {
-//    			v2 = &(*item);
-//    		}
-//		});
-
-//    std::for_each(vect.begin(), vect.end(), [&](Vertex_mmm it) {
     std::for_each(vect.begin(), vect.end(), [&](auto&& it) {
 		if (it.coor == new_pin1) {
 			v1 = &(it);
@@ -160,13 +112,6 @@ void Multisource_multisink_mazeroute::adjust_twopin_element() {
 			v2 = &(it);
 		}
 	});
-//    for (vector<Vertex_mmm>::iterator it = vect.begin(); it != vect.end() && (v1 == nullptr || v2 == nullptr); ++it) {
-//        if (it->coor == new_pin1) {
-//            v1 = &(*it);
-//        } else if (it->coor == new_pin2) {
-//            v2 = &(*it);
-//        }
-//    }
     assert(v1 != nullptr);
     assert(v2 != nullptr);
 
@@ -191,14 +136,6 @@ void Multisource_multisink_mazeroute::find_subtree(Vertex_mmm& v, int mode) {
     } else {
         mmm_map[v.coor.x][v.coor.y].dst = dst_counter;
     }
-//    std::for_each(v.neighbor.begin(), v.neighbor.size(), it{
-//    	if(v.neighbor[it]->visit != visit_counter) {
-//
-//    	}
-//    	if(a->visit != visit_counter) {
-//    		find_subtree(a, mode);
-//    	}
-//    });
     for (Vertex_mmm * neighbor : v.neighbor) {
         if (neighbor->visit != visit_counter)
             find_subtree(*neighbor, mode);
@@ -258,25 +195,6 @@ void Multisource_multisink_mazeroute::setup_pqueue() {
                 vertexV.emplace_back(c);
             }
         }
-
-//        std::for_each(counter.begin(), counter.end(), [&](COUNTER& a ) {
-//        		Two_pin_element_2d& twopList = construct_2d_tree.two_pin_list[a.id];
-//        		if (a.total_overflow > 0){
-//        			rangeRouter.range_router(twopList, 3);
-//        		}
-//        	});
-
-//        std::for_each(t.first, t.number, [&](t.branch& a ) {
-//        	Branch b = t.branch[a.n];
-//        	Coordinate_2d c1 { (int) b.x, (int) b.y };
-//        	Coordinate_2d c2 { (int) t.branch[b.n].x, (int) t.branch[b.n].y };
-//        	Vertex_mmm& v1 = vertexV.at(indexmap.at(c1));
-//			Vertex_mmm& v2 = vertexV.at(indexmap.at(c2));
-//			if (v1.coor != v2.coor) {
-//				v1.neighbor.push_back(&v2);
-//				v2.neighbor.push_back(&v1);
-//			}
-//	    });
 
         for (int i = 0; i < t.number; ++i) {
             Branch b = t.branch[i];

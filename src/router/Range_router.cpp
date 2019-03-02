@@ -52,12 +52,12 @@ void NTHUR::RangeRouter::define_interval() {
 
 std::string NTHUR::RangeRouter::print_interval() const {
 
-    std::string s("interval value: ");
-    for (uint32_t i = 0; i < interval_list.size(); ++i) {
-        s += std::to_string(interval_list[i].begin_value) + " ";
-    }
-    s += std::to_string(interval_list[interval_list.size() - 1].end_value) + "\n";
-    return s;
+     std::string s("interval value: ");
+     for (uint32_t i = 0; i < interval_list.size(); ++i) {
+         s += std::to_string(interval_list[i].begin_value) + " ";
+     }
+     s += std::to_string(interval_list[interval_list.size() - 1].end_value) + "\n";
+     return s; // CHANGED AFTER GCOV
 }
 
 void NTHUR::RangeRouter::insert_to_interval(Coordinate_2d coor_2d, Coordinate_2d c2) {
@@ -318,27 +318,7 @@ void NTHUR::RangeRouter::specify_all_range(boost::multi_array<Point_fc, 2>& grid
 
     std::sort(twopin_list.begin(), twopin_list.end(), [&](const Two_pin_element_2d *a, const Two_pin_element_2d *b) {
         return Two_pin_element_2d::comp_stn_2pin(*a,*b);});
-//    std::for_each(twopin_list.begin(), twopin_list.end(), [&](auto&& it)
-//    {
-//    	if(it->boxSize() == 1){
-//    		break;
-//    	}
-//    	range_router(it.index, 2);
-//    });
 
-//    BOOST_FOREACH(twopin_list.begin(), twopin_list.end(), [&](auto&& it)
-//	{
-//		if(it->boxSize() == 1){
-//			break;
-//		}
-//		range_router(it.index, 2);
-//	});
-
-//    std::for_each((int) twopin_list.begin(),(int) twopin_list.size(), int &it) {
-//    	if(twopin_list[it]->boxSize() == 1)
-//    		break;
-//    	range_router(*twopin_list[it], 2);
-//    });
     for (int i = 0; i < (int) twopin_list.size(); ++i) {
         if (twopin_list[i]->boxSize() == 1)
             break;

@@ -99,13 +99,6 @@ void Route_2pinnets::reset_c_map_used_net_to_one() {
 			edge.used_net[routeNetTable.first] = 1;
 		}
 	});
-
-//    for (Edge_2d& edge : congestion.congestionMap2d.all()) {
-//        for (auto& routeNetTable : edge.used_net) {
-//            edge.used_net[routeNetTable.first] = 1;
-//        }
-//    }
-
 }
 
 //set terminal type to c_map_2d
@@ -114,16 +107,13 @@ void Route_2pinnets::put_terminal_color_on_colormap(int net_id) {
 	std::for_each(rr_map.get_net(net_id).get_pinList().begin(), rr_map.get_net(net_id).get_pinList().end(), [&](auto&& pin) {
 		colorMap[pin.x][pin.y].terminal = net_id;
 	});
-//    for (const Net::Pin& pin : rr_map.get_net(net_id).get_pinList()) {
-//        colorMap[pin.x][pin.y].terminal = net_id;
-//    }
 }
 
 //return: one-degree terminal, non-one-degree terminal, one-degree nonterminal, steiner point, two-degree (dir)
 Coordinate_2d Route_2pinnets::determine_is_terminal_or_steiner_point(Coordinate_2d& c, Coordinate_2d& head, int net_id, PointType& pointType) {
 
     Coordinate_2d result;
-    if (colorMap[c.x][c.y].terminal == net_id) {
+     if (colorMap[c.x][c.y].terminal == net_id) {
 //    	std::for_each(congestion.congestionMap2d.neighbors(c).begin(), congestion.congestionMap2d.neighbors(c).end(), [&](auto&& h) {
 //    		if (h.vertex() != head && h.edge().lookupNet(net_id)) {
 //				pointType = severalDegreeTerminal;
@@ -131,16 +121,17 @@ Coordinate_2d Route_2pinnets::determine_is_terminal_or_steiner_point(Coordinate_
 //			}
 //    	});
 
-        for (EdgePlane<Edge_2d>::Handle& h : congestion.congestionMap2d.neighbors(c)) {
-            if (h.vertex() != head && h.edge().lookupNet(net_id)) {
-                pointType = severalDegreeTerminal;
-                return result;
-            }
-        }
-        pointType = oneDegreeTerminal;
+         for (EdgePlane<Edge_2d>::Handle& h : congestion.congestionMap2d.neighbors(c)) {
+             if (h.vertex() != head && h.edge().lookupNet(net_id)) {
+                 pointType = severalDegreeTerminal;
+                 return result;
+             }
+         }
+         pointType = oneDegreeTerminal; // CHANGED AFTER GCOV
 
-    } else {
+     } else {
         int other_passed_edge = 0;
+
 //        std::for_each(congestion.congestionMap2d.neighbors(c).begin(), congestion.congestionMap2d.neighbors(c).end(), [&](auto&& h) {
 //        	if (h.vertex() != head && h.edge().lookupNet(net_id)) {
 //			++other_passed_edge;
@@ -152,17 +143,16 @@ Coordinate_2d Route_2pinnets::determine_is_terminal_or_steiner_point(Coordinate_
 //		}
 //		});
 
-
-        for (EdgePlane<Edge_2d>::Handle& h : congestion.congestionMap2d.neighbors(c)) {
-            if (h.vertex() != head && h.edge().lookupNet(net_id)) {
-                ++other_passed_edge;
-                if (other_passed_edge > 1) {
-                    pointType = steinerPoint;
-                    return -1;
-                }
-                result = h.vertex();
-            }
-        }
+         for (EdgePlane<Edge_2d>::Handle& h : congestion.congestionMap2d.neighbors(c)) {
+             if (h.vertex() != head && h.edge().lookupNet(net_id)) {
+                 ++other_passed_edge;
+                 if (other_passed_edge > 1) {
+                     pointType = steinerPoint;
+                     return -1;
+                 }
+                 result = h.vertex();
+             }
+         } // CHANGED AFTER GCOVER
         if (other_passed_edge == 0) {
             pointType = oneDegreeNonterminal;
 
@@ -170,7 +160,7 @@ Coordinate_2d Route_2pinnets::determine_is_terminal_or_steiner_point(Coordinate_
             pointType = twoDegree;
 
         }
-    }
+     }
     return result;
 }
 
@@ -243,13 +233,6 @@ void Route_2pinnets::bfs_for_find_two_pin_list(Coordinate_2d start_coor, int net
 				neighbors.push_back(h.vertex());
 			}
         });
-
-//        for (EdgePlane<Edge_2d>::Handle& h : congestion.congestionMap2d.neighbors(c)) {
-//            if (h.edge().lookupNet(net_id) && //
-//                    (colorMap[h.vertex().x][h.vertex().y].traverse != net_id)) {
-//                neighbors.push_back(h.vertex());
-//            }
-//        }
 
         switch (neighbors.size()) {
         case 0:

@@ -470,18 +470,18 @@ void Construct_2d_tree::move_edge_ver(Vertex_flute& a, int best_pos, Vertex_flut
             for (ind2 = 0;; ++ind2)
                 if (test(st_pt[i]->c.x, st_pt[i]->neighbor[ind2]->c.x))
                     break;
-            for (int j = 0;; ++j)
-                if (a.neighbor[ind1]->neighbor[j] == &a) {
-                    a.neighbor[ind1]->neighbor[j] = st_pt[i];
-                    break;
-                }
-            for (int j = 0;; ++j)
-                if (st_pt[i]->neighbor[ind2]->neighbor[j] == st_pt[i]) {
-                    st_pt[i]->neighbor[ind2]->neighbor[j] = &a;
-                    break;
-                }
-            swap(a.neighbor[ind1], st_pt[i]->neighbor[ind2]);
-            a.c.x = st_pt[i]->c.x;
+            // for (int j = 0;; ++j)
+            //     if (a.neighbor[ind1]->neighbor[j] == &a) {
+            //         a.neighbor[ind1]->neighbor[j] = st_pt[i];
+            //         break;
+            //     }
+            // for (int j = 0;; ++j)
+            //     if (st_pt[i]->neighbor[ind2]->neighbor[j] == st_pt[i]) {
+            //         st_pt[i]->neighbor[ind2]->neighbor[j] = &a;
+            //         break;
+            //     }
+            // swap(a.neighbor[ind1], st_pt[i]->neighbor[ind2]);
+            // a.c.x = st_pt[i]->c.x; CHANGED AFTER GCOV
         } else if (st_pt[i]->c.x == best_pos && st_pt[i]->c.y == a.c.y)
             overlap_a = st_pt[i];
         else
