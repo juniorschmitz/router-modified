@@ -1,6 +1,6 @@
 require 'pry'
 
-options = '--p2-max-iteration=150 --p2-init-box-size=25 --p2-box-expand-size=20 --overflow-threshold=300 --p3-max-iteration=20 --p3-init-box-size=15 --p3-box-expand-size=10'
+options = '--p2-max-iteration=150 --p2-init-box-size=25 --p2-box-expand-size=20 --overflow-threshold=200 --p3-max-iteration=20 --p3-init-box-size=15 --p3-box-expand-size=10'
 
 benchs = {
     adaptec1: 'adaptec1.capo70.3d.35.50.90.gr',
