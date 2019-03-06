@@ -11,6 +11,15 @@
 #include "MM_mazeroute.h"
 #include <boost/foreach.hpp>
 
+
+//#include <iostream>
+//#include <vector>
+//#include <algorithm>
+//#include <pstl/algorithm>  // most of the algorithms
+//#include <pstl/numeric>    // for reduce, transform_reduce
+//#include <pstl/execution>  // execution policies
+//#include <pstl/memory>
+
 //#define SPDLOG_TRACE_ON
 #include "../spdlog/spdlog.h"
 
@@ -32,26 +41,30 @@ bool NTHUR::RangeRouter::comp_grid_edge(const Grid_edge_element& a, const Grid_e
  and also compute average congestion value (sum of demand / sum of capacity)
  */
 void NTHUR::RangeRouter::define_interval() {
-
     Congestion::Statistic s = congestion.stat_congestion();
-
     interval_list[0].begin_value = s.max;
-
     for (u_int32_t i = 1; i < interval_list.size(); ++i) {
         interval_list[i].begin_value = s.max - ((double) i / interval_list.size()) * (s.max - 1.0);
         interval_list[i - 1].end_value = interval_list[i].begin_value;
     }
     interval_list[interval_list.size() - 1].end_value = 1.;
-    for (Interval_element& ele : interval_list) {
-        ele.grid_edge_vector.clear();
-    }
-
+    std::for_each(interval_list.begin(), interval_list.end(), [&](auto&& ele) {
+    	ele.grid_edge_vector.clear();
+    });
+//    std::for_each(
+//        std::execution::par_unseq,
+//		interval_list.begin(),
+//		interval_list.end(),
+//        [](auto&& ele){
+//    		ele.grid_edge_vector.clear();
+//        }); // AQUI BROW
+//    for (Interval_element& ele : interval_list) {
+//        ele.grid_edge_vector.clear();
+//    } HERENOW
     SPDLOG_TRACE(print_interval());
-
 }
 
 std::string NTHUR::RangeRouter::print_interval() const {
-
      std::string s("interval value: ");
      for (uint32_t i = 0; i < interval_list.size(); ++i) {
          s += std::to_string(interval_list[i].begin_value) + " ";
@@ -75,7 +88,6 @@ void NTHUR::RangeRouter::insert_to_interval(Coordinate_2d coor_2d, Coordinate_2d
 }
 
 void NTHUR::RangeRouter::divide_grid_edge_into_interval() {
-
     for (int i = 0; i < congestion.congestionMap2d.getXSize() - 1; ++i) {
         for (int j = 0; j < congestion.congestionMap2d.getYSize(); ++j) {
             insert_to_interval(Coordinate_2d { i, j }, Coordinate_2d { i + 1, j });
@@ -85,16 +97,12 @@ void NTHUR::RangeRouter::divide_grid_edge_into_interval() {
         for (int j = 0; j < congestion.congestionMap2d.getYSize() - 1; ++j) {
             insert_to_interval(Coordinate_2d { i, j }, Coordinate_2d { i, j + 1 });
         }
-
     }
-
 }
 
 void NTHUR::RangeRouter::walkFrame(const Rectangle& r, std::function<void(Coordinate_2d& i, Coordinate_2d& before)> accumulate) {
-
     const Coordinate_2d& upLeft = r.upLeft;
     const Coordinate_2d& downRight = r.downRight;
-
     Coordinate_2d before { upLeft.x, std::min(upLeft.y + 1, downRight.y) };
     {
         Coordinate_2d corner { upLeft.x, upLeft.y };
@@ -107,21 +115,17 @@ void NTHUR::RangeRouter::walkFrame(const Rectangle& r, std::function<void(Coordi
         Coordinate_2d center { i.x, std::min(upLeft.y + 1, downRight.y) };
         accumulate(i, center);
     }
-
     {
         Coordinate_2d corner { downRight.x, upLeft.y };
         accumulate(corner, before);
         before.set(corner);
     }
-
     for (Coordinate_2d i { downRight.x, upLeft.y + 1 }; i.y < downRight.y; ++i.y) {
         accumulate(i, before);
         before.set(i);
         Coordinate_2d center { std::max(upLeft.x, downRight.x - 1), i.y };
         accumulate(i, center);
-
     }
-
     if (!downRight.isAligned(upLeft)) {
         {
             Coordinate_2d corner { downRight.x, downRight.y };
@@ -154,7 +158,6 @@ void NTHUR::RangeRouter::walkFrame(const Rectangle& r, std::function<void(Coordi
 }
 
 void NTHUR::RangeRouter::expand_range(Coordinate_2d c1, Coordinate_2d c2, int interval_index) {
-
     Rectangle r { c1, c2 };
     Rectangle bound { Coordinate_2d { 0, 0 }, congestion.congestionMap2d.getSize() + Coordinate_2d { -1, -1 } };
 
@@ -162,7 +165,6 @@ void NTHUR::RangeRouter::expand_range(Coordinate_2d c1, Coordinate_2d c2, int in
     int edge_num = 0;
 
     while (total_cong >= edge_num * interval_list[interval_index].end_value && !r.contains(bound)) {
-
         walkFrame(r, [&](Coordinate_2d& i,Coordinate_2d& before) {
             if (before != i) {
                 if (bound.contains(i) && bound.contains(before)) {
@@ -190,14 +192,13 @@ std::string NTHUR::RangeRouter::printIfBound(const Rectangle& r, const Rectangle
         s += ", its range is equal to the grid size, ";
         s += r.toString();
         s += " from edge (" + c1.toString() + ") (" + c2.toString() + ")";
-
     }
     return s;
 }
 //Rip-up the path that pass any overflowed edges, then route with monotonic 
 //routing or multi-source multi-sink routing.
 //If there is no overflowed path by using the two methods above, then remain 
-//the original path.
+//the original path. MEGAACCIO
 void NTHUR::RangeRouter::range_router(Two_pin_element_2d& two_pin, int version) {
     if (!congestion.check_path_no_overflow(two_pin.path, two_pin.net_id, false)) {
         ++total_twopin;
@@ -222,7 +223,6 @@ void NTHUR::RangeRouter::range_router(Two_pin_element_2d& two_pin, int version) 
             end.x = min(construct_2d_tree.rr_map.get_gridx() - 1, end.x + size);
             end.y = min(construct_2d_tree.rr_map.get_gridy() - 1, end.y + size);
             find_path_flag = construct_2d_tree.mazeroute_in_range.mm_maze_route_p(two_pin, bound.cost, bound.distance, bound.via_num, start, end, version);
-
             if (find_path_flag == false) {
                 two_pin.path.insert(two_pin.path.begin(), bound_path.begin(), bound_path.end());
             }
@@ -233,30 +233,41 @@ void NTHUR::RangeRouter::range_router(Two_pin_element_2d& two_pin, int version) 
 
 void NTHUR::RangeRouter::query_range_2pin(const Rectangle& r, //
         std::vector<Two_pin_element_2d*>& twopin_list, boost::multi_array<Point_fc, 2>& gridCell) {
-
     static int done_counter = 0;	//only initialize once
-
     for (int x = r.upLeft.x; x <= r.downRight.x; ++x) {
         for (int y = r.upLeft.y; y <= r.downRight.y; ++y) {
             Point_fc& cell = (gridCell[x][y]);
 
-            for (Two_pin_element_2d* twopin : cell.points) {   //for each pin or steiner point
-                if (twopin->done != construct_2d_tree.done_iter) {
-                    Coordinate_2d& p1 = twopin->pin1;
-                    Coordinate_2d& p2 = twopin->pin2;
-                    if (colorMap[p1.x][p1.y].routeState != done_counter && //
-                            colorMap[p2.x][p2.y].routeState != done_counter) {
-                        if (r.contains(p1) || r.contains(p2)) {
-                            twopin->done = construct_2d_tree.done_iter;
-                            twopin_list.push_back(twopin);
-                        }
-                    }
-                }
-            }
+            std::for_each(cell.points.begin(), cell.points.end(), [&](auto&& twopin) {
+            	if (twopin->done != construct_2d_tree.done_iter) {
+					Coordinate_2d& p1 = twopin->pin1;
+					Coordinate_2d& p2 = twopin->pin2;
+					if (colorMap[p1.x][p1.y].routeState != done_counter && //
+							colorMap[p2.x][p2.y].routeState != done_counter) {
+						if (r.contains(p1) || r.contains(p2)) {
+							twopin->done = construct_2d_tree.done_iter;
+							twopin_list.push_back(twopin);
+						}
+					}
+				}
+			}); // HERENOW
+
+//            for (Two_pin_element_2d* twopin : cell.points) {   //for each pin or steiner point
+//                if (twopin->done != construct_2d_tree.done_iter) {
+//                    Coordinate_2d& p1 = twopin->pin1;
+//                    Coordinate_2d& p2 = twopin->pin2;
+//                    if (colorMap[p1.x][p1.y].routeState != done_counter && //
+//                            colorMap[p2.x][p2.y].routeState != done_counter) {
+//                        if (r.contains(p1) || r.contains(p2)) {
+//                            twopin->done = construct_2d_tree.done_iter;
+//                            twopin_list.push_back(twopin);
+//                        }
+//                    }
+//                }
+//            }
             colorMap[cell.x][cell.y].routeState = done_counter;
         }
     }
-
     ++done_counter;
 }
 
@@ -267,45 +278,54 @@ void NTHUR::RangeRouter::specify_all_range(boost::multi_array<Point_fc, 2>& grid
     for (u_int32_t i = 0; i < colorMap.num_elements(); ++i) {
         colorMap.data()[i].set(-1, -1);
     }
-
     total_twopin = 0;
-
     for (int i = interval_list.size() - 1; i >= 0; --i) {
         Interval_element& ele = interval_list[i];
         range_vector.clear();
-//        sort(ele.grid_edge_vector.begin(), ele.grid_edge_vector.end(), [&](const Grid_edge_element& a, const Grid_edge_element& b) {
-//            return comp_grid_edge( a, b);
-//        });
         std::sort(ele.grid_edge_vector.begin(), ele.grid_edge_vector.end(), [&](const Grid_edge_element& a, const Grid_edge_element& b) {
 			return comp_grid_edge( a, b);
 		});
 
-        for (Grid_edge_element& gridEdge : ele.grid_edge_vector) {
-            Coordinate_2d& c = gridEdge.grid;
-            Coordinate_2d& nei = gridEdge.c2;
 
-            if ((colorMap[c.x][c.y].expand != i) || (colorMap[nei.x][nei.y].expand != i)) {
-                colorMap[c.x][c.y].expand = i;
-                colorMap[nei.x][nei.y].expand = i;
-
-                expand_range(c, nei, i);
-            }
-        }
+        std::for_each(ele.grid_edge_vector.begin(), ele.grid_edge_vector.end(), [&](auto&& gridEdge) {
+        	Coordinate_2d& c = gridEdge.grid;
+			Coordinate_2d& nei = gridEdge.c2;
+			if ((colorMap[c.x][c.y].expand != i) || (colorMap[nei.x][nei.y].expand != i)) {
+				colorMap[c.x][c.y].expand = i;
+				colorMap[nei.x][nei.y].expand = i;
+				expand_range(c, nei, i);
+			}
+		}); // maybe2...
+//        for (Grid_edge_element& gridEdge : ele.grid_edge_vector) {
+//            Coordinate_2d& c = gridEdge.grid;
+//            Coordinate_2d& nei = gridEdge.c2;
+//            if ((colorMap[c.x][c.y].expand != i) || (colorMap[nei.x][nei.y].expand != i)) {
+//                colorMap[c.x][c.y].expand = i;
+//                colorMap[nei.x][nei.y].expand = i;
+//                expand_range(c, nei, i);
+//            }
+//        }
 
         twopin_list.clear();
         twopin_range_index_list.clear();
-        for (Rectangle r : range_vector) {
-            query_range_2pin(r, twopin_list, gridCell);
-        }
+
+        std::for_each(range_vector.begin(), range_vector.end(), [&](auto&& r) {
+        	query_range_2pin(r, twopin_list, gridCell);
+		}); // maybe...
+//        for (Rectangle r : range_vector) {
+//            query_range_2pin(r, twopin_list, gridCell);
+//        }
 
         std::sort(twopin_list.begin(), twopin_list.end(), [&](const Two_pin_element_2d *a, const Two_pin_element_2d *b) {
-            return Two_pin_element_2d::comp_stn_2pin(*a,*b);});
+//            return Two_pin_element_2d::comp_stn_2pin(*a,*b);});
+        	return Two_pin_element_2d::comp_stn_2pin(*a,*b);}); //SWAPHERE
 
-        for (Two_pin_element_2d * two_pin : twopin_list) {
-
-            range_router(*two_pin, 2);
-
-        }
+        std::for_each(twopin_list.begin(), twopin_list.end(), [&](auto&& two_pin) {
+        	range_router(*two_pin, 2);
+        });
+//        for (Two_pin_element_2d * two_pin : twopin_list) {
+//            range_router(*two_pin, 2);
+//        } // ACCIO MEGA ACCIO AQUI MANDA OS NEGOCIO PRA ROTEAR PORRA TODA -> TESTAR AGORA COM CARREGADOR
     }
 
     twopin_list.clear();
@@ -330,7 +350,6 @@ void NTHUR::RangeRouter::specify_all_range(boost::multi_array<Point_fc, 2>& grid
 
 NTHUR::RangeRouter::RangeRouter(Construct_2d_tree& construct2dTree, Congestion& congestion, bool monotonic_enable) :
         total_twopin(0),	//
-
         construct_2d_tree { construct2dTree }, //
         congestion { congestion }, //
         colorMap { boost::extents[congestion.congestionMap2d.getXSize()][congestion.congestionMap2d.getYSize()] }, monotonicRouter { congestion, monotonic_enable } {
