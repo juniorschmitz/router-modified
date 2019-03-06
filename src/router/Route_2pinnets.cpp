@@ -46,15 +46,12 @@ Route_2pinnets::Route_2pinnets(Construct_2d_tree& construct_2d_tree, RangeRouter
 }
 
 void Route_2pinnets::allocate_gridcell() {
-
     for (u_int32_t x = 0; x < gridcell.size(); ++x) {
         for (u_int32_t y = 0; y < gridcell[0].size(); ++y) {
             gridcell[x][y].set(x, y);
         }
     }
-
     SPDLOG_TRACE(log_sp, "initialize gridcell successfully");
-
 }
 
 void Route_2pinnets::init_gridcell() {
@@ -111,7 +108,6 @@ void Route_2pinnets::put_terminal_color_on_colormap(int net_id) {
 
 //return: one-degree terminal, non-one-degree terminal, one-degree nonterminal, steiner point, two-degree (dir)
 Coordinate_2d Route_2pinnets::determine_is_terminal_or_steiner_point(Coordinate_2d& c, Coordinate_2d& head, int net_id, PointType& pointType) {
-
     Coordinate_2d result;
      if (colorMap[c.x][c.y].terminal == net_id) {
 //    	std::for_each(congestion.congestionMap2d.neighbors(c).begin(), congestion.congestionMap2d.neighbors(c).end(), [&](auto&& h) {
@@ -158,7 +154,6 @@ Coordinate_2d Route_2pinnets::determine_is_terminal_or_steiner_point(Coordinate_
 
         } else {
             pointType = twoDegree;
-
         }
      }
     return result;
@@ -204,11 +199,9 @@ void Route_2pinnets::fillTree(int offset, int net_id) {
 
     }
     tree.number = sizeTree + 1;
-
 }
 
 void Route_2pinnets::bfs_for_find_two_pin_list(Coordinate_2d start_coor, int net_id) {
-
     std::stack<std::vector<Coordinate_2d>> stack;
     stack.emplace();
     stack.top().push_back(start_coor);
@@ -219,21 +212,17 @@ void Route_2pinnets::bfs_for_find_two_pin_list(Coordinate_2d start_coor, int net
         std::vector<Coordinate_2d>& path = stack.top();
         const Coordinate_2d& c = path.back();
         colorMap[c.x][c.y].traverse = net_id;
-
         if (colorMap[c.x][c.y].terminal == net_id) {
             add_two_pin(net_id, path);
         }
-
         std::vector<Coordinate_2d> neighbors;
         neighbors.reserve(4);
-
         std::for_each(congestion.congestionMap2d.neighbors(c).begin(), congestion.congestionMap2d.neighbors(c).end(), [&](auto&& h) {
         	if (h.edge().lookupNet(net_id) && //
 					(colorMap[h.vertex().x][h.vertex().y].traverse != net_id)) {
 				neighbors.push_back(h.vertex());
 			}
         });
-
         switch (neighbors.size()) {
         case 0:
             congestion.update_congestion_map_remove_two_pin_net(path, net_id);
@@ -250,12 +239,10 @@ void Route_2pinnets::bfs_for_find_two_pin_list(Coordinate_2d start_coor, int net
             break;
         }
     }
-
     fillTree(offset, net_id);
 }
 
 void Route_2pinnets::reallocate_two_pin_list() {
-
     for (u_int32_t i = 0; i < colorMap.num_elements(); ++i) {
         colorMap.data()[i].set(-1, -1);
     }
@@ -278,7 +265,6 @@ void Route_2pinnets::reallocate_two_pin_list() {
 
         }
     }
-
 }
 
 } // namespace NTHUR

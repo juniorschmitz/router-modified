@@ -28,11 +28,9 @@ OutputGeneration::OutputGeneration(const RoutingRegion& rr) :
     for (Edge_3d& edge : cur_map_3d.all()) {
         edge.cur_cap = 0;
     }
-
     for (auto pair : boost::combine(rr.getMaxCapacity().all(), cur_map_3d.all())) {
         pair.get<1>().max_cap = pair.get<0>();
     }
-
     log_sp = spdlog::get("NTHUR");
 }
 
@@ -71,7 +69,6 @@ OutputGeneration::Comb OutputGeneration::combAllNet() const {
 }
 
 void OutputGeneration::generate_all_output(std::ostream & output) const {
-
     const Comb comb = combAllNet();
     for (uint32_t i = 0; i < comb.size(); ++i) {
         generate_output(i, comb[i], output);
@@ -80,12 +77,10 @@ void OutputGeneration::generate_all_output(std::ostream & output) const {
 }
 
 void OutputGeneration::printEdge(const Coordinate_3d& c, const Coordinate_3d& c2) const {
-
     log_sp->info("Edge3d {} between {} and {}", cur_map_3d.edge(c, c2).toString(), c.toString(), c2.toString());
 }
 
 void OutputGeneration::plotNet(int net_id) const {
-
     Comb comb { static_cast<std::size_t>(rr_map.get_netNumber()) };
     Coordinate_3d c2;
     for (Coordinate_3d c { 0, 0, 0 }; c.x < cur_map_3d.getXSize(); ++c.x) {
@@ -121,14 +116,11 @@ void OutputGeneration::plotNet(int net_id) const {
             }
         }
     }
-
     log_sp->info("end Layer plotNet true");
 }
 void OutputGeneration::calculate_wirelength(const int global_via_cost) const {
-
     int xy = 0;
     int z = 0;
-
     for (Coordinate_3d c { 0, 0, 0 }; c.x < cur_map_3d.getXSize(); ++c.x) {
         for (c.y = 0; c.y < cur_map_3d.getYSize(); ++c.y) {
             for (c.z = 0; c.z < cur_map_3d.getZSize(); ++c.z) {
@@ -139,15 +131,12 @@ void OutputGeneration::calculate_wirelength(const int global_via_cost) const {
         }
     }
     z *= global_via_cost;
-
     log_sp->info("total wire length = {} + {} = {}", xy, z, (xy + z));
 }
 
 void OutputGeneration::scale(Comb& comb) const {
-
     int xDetailShift = rr_map.get_llx() + (rr_map.get_tileWidth() / 2);
     int yDetailShift = rr_map.get_lly() + (rr_map.get_tileHeight() / 2);
-
     // have edge
     for (std::vector<Segment3d>& v : comb) {
         for (Segment3d& seg : v) {
@@ -165,22 +154,18 @@ void OutputGeneration::scale(Comb& comb) const {
 }
 
 void OutputGeneration::generate_output(const int net_id, const std::vector<Segment3d>& v, std::ostream & output) const {
-
 // the beginning of a net of output file
-
     output << rr_map.get_net(net_id).get_name() << " " << rr_map.get_net(net_id).serialNumber << " " << v.size() << "\n";
-
     // have edge
     for (const Segment3d& seg : v) {
         const Coordinate_3d& o = seg.first;
         const Coordinate_3d& d = seg.last;
-
         output << "(" << o.x << "," << o.y << "," << o.z << ")-(" << d.x << "," << d.y << "," << d.z << ")\n";
     }
-
 // the end of a net of output file
     output << "!\n";
 }
+
 void OutputGeneration::collectComb(Coordinate_3d c2, Coordinate_3d& c, Comb& comb) const {
     for (const std::pair<const int, int>& net : cur_map_3d.edge(c, c2).used_net) {
         std::vector<Segment3d>& v = comb[net.first];
@@ -201,7 +186,6 @@ void OutputGeneration::print_max_overflow() const {
     int max = 0;
     int sum = 0;
     for (const Edge_3d& edgeLeft : cur_map_3d.all()) {
-
         if (edgeLeft.isOverflow()) {
             max = std::max(edgeLeft.overUsage(), max);
             sum += edgeLeft.overUsage();
@@ -211,7 +195,6 @@ void OutputGeneration::print_max_overflow() const {
     log_sp->info("       3D # of overflow = {} ", sum);
     log_sp->info("       3D max  overflow = {} ", max);
     log_sp->info("3D overflow edge number = {} ", lines);
-
 }
 
 } /* namespace NTHUR */

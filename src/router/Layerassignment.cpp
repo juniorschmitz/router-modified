@@ -407,11 +407,8 @@ Layer_assignment::Layer_assignment(const Congestion& congestion, OutputGeneratio
     log_sp->info("Layer assignment processing...");
 
     sort_net_order();
-
     output.print_max_overflow();
-
     output.calculate_wirelength(global_via_cost);
-
 }
 
 } // namespace NTHUR

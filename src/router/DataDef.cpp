@@ -18,8 +18,6 @@ Edge_2d::Edge_2d() :
 
 }
 
-
-
 bool Two_pin_element::comp_2pin_net(Two_pin_element&a, Two_pin_element&b) {
     int a_bbox_size = abs(a.pin1.x - a.pin2.x) + abs(a.pin1.y - a.pin2.y);
     int b_bbox_size = abs(b.pin1.x - b.pin2.x) + abs(b.pin1.y - b.pin2.y);

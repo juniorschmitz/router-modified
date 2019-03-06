@@ -35,7 +35,6 @@ MonotonicRouting::~MonotonicRouting() {
 }
 
 void MonotonicRouting::monotonic_routing_algorithm(int x1, int y1, int x2, int y2, OrientationType dir, int net_id, Bound& bound) {
-
     double cost;
     int distance = 1;
 
@@ -133,7 +132,6 @@ void MonotonicRouting::traverse_parent_monotonic(int x1, int y1, int x2, int y2,
         else
             --j;
     }
-
 //push the source to list
     two_pin_monotonic_path.path.push_back(Coordinate_2d(i, j));
 }
@@ -281,7 +279,6 @@ void MonotonicRouting::compute_path_total_cost_and_distance(Two_pin_element_2d& 
     mn.via_num = 0;
     for (int i = element.path.size() - 2; i >= 0; --i) {
         Coordinate_2d& c = element.path[i];
-
         mn.total_cost += congestion.get_cost_2d(c, dir, element.net_id, distance);
         mn.distance += distance;
         if (!c.isAligned(pre_dir)) {
@@ -299,18 +296,14 @@ void MonotonicRouting::compute_path_total_cost_and_distance(Two_pin_element_2d& 
 bool MonotonicRouting::monotonicRoute(Two_pin_element_2d& two_pin, Bound& bound, std::vector<Coordinate_2d>& bound_path) {
     Monotonic_element mn;
     compute_path_total_cost_and_distance(two_pin, mn);
-
     bound.cost = mn.total_cost;
     bound.distance = mn.distance;
     bound.via_num = mn.via_num;
     bound.flag = true;
     two_pin.path.clear();
-
     bool find_path_flag = false;
-
     if (monotonic_enable) {
         bool find_path_flag = monotonic_pattern_route(two_pin.pin1.x, two_pin.pin1.y, two_pin.pin2.x, two_pin.pin2.y, two_pin, two_pin.net_id, bound);
-
         if (find_path_flag) {
             bound_path = two_pin.path;
             bound.cost = cong_monotonic[two_pin.path[0].x][two_pin.path[0].y].total_cost;

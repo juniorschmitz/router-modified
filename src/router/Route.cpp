@@ -16,10 +16,8 @@
 #include "../spdlog/spdlog.h"
 
 NTHUR::OutputGeneration NTHUR::Route::process(const RoutingRegion& rr, const spdlog::level::level_enum& level) {
-
     auto console_sp = spdlog::get("NTHUR");
     if (console_sp == nullptr) {
-
         std::lock_guard<std::mutex> lock(g_mutex);
         console_sp = spdlog::get("NTHUR");
         if (console_sp == nullptr) {
@@ -28,7 +26,6 @@ NTHUR::OutputGeneration NTHUR::Route::process(const RoutingRegion& rr, const spd
 
     }
     spdlog::set_level(level);
-
     Congestion congestion(rr.get_gridx(), rr.get_gridy());
     RoutingParameters routingparam; // default settings
     routingparam.set_overflow_threshold(0);

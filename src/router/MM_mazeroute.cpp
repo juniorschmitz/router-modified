@@ -188,7 +188,6 @@ void Multisource_multisink_mazeroute::setup_pqueue() {
 //        )}; first trial
 
         for (int i = 0; i < t.number; ++i) {
-
             Coordinate_2d c { (int) t.branch[i].x, (int) t.branch[i].y };
             bool inserted = indexmap.insert( { c, static_cast<int>(vertexV.size()) }).second;
             if (inserted) {
@@ -260,7 +259,6 @@ void Multisource_multisink_mazeroute::bfsSetColorMap(const Coordinate_2d& c1) {
     }
 }
 bool Multisource_multisink_mazeroute::mm_maze_route_p(Two_pin_element_2d &ielement, double bound_cost, int bound_distance, int bound_via_num, Coordinate_2d& start, Coordinate_2d& end, int version) {
-
     bool find_path_flag = false;
 
     MMM_element* sink_pos = nullptr;

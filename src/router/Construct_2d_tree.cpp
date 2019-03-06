@@ -49,6 +49,8 @@ void Construct_2d_tree::init_2pin_list() {
     for (i = 0; i < netnum; ++i) {
 //Two pin nets group by net id. So for fetching the 2nd net's 2-pin net,
 //you can fetch by net_2pin_list[2][i], where i is the id of 2-pin net.
+        // net_2pin_list.push_back(std::vector<Two_pin_element_2d>());
+        // bbox_2pin_list.push_back(std::vector<Two_pin_element_2d>());
         net_2pin_list.push_back(std::vector<Two_pin_element_2d>());
         bbox_2pin_list.push_back(std::vector<Two_pin_element_2d>());
     }
@@ -64,32 +66,54 @@ void Construct_2d_tree::bbox_route(Two_pin_list_2d& list, const double value) {
     if (value > 0) {
         u_value = 1;
     }
-    for (Two_pin_element_2d& it : list) {
-        Rectangle rect { it.pin1.x, it.pin2 };
+     std::for_each(list.begin(), list.end(), [&](auto && it){
+         Rectangle rect { it.pin1.x, it.pin2 };
+         rect.frame([&](const Coordinate_2d& c1,const Coordinate_2d& c2) {
+         bboxRouteStateMap.edge(c1, c2) = 1;
 
-        rect.frame([&](const Coordinate_2d& c1,const Coordinate_2d& c2) {
-            bboxRouteStateMap.edge(c1, c2) = 1;
-
-            SPDLOG_TRACE(log_sp, " bboxRouteStateMap.edge(({}), ({})) =1 ",c1.toString(),c2.toString());
-        });
-    }
+             SPDLOG_TRACE(log_sp, " bboxRouteStateMap.edge(({}), ({})) =1 ",c1.toString(),c2.toString());
+         });
+     });
+     // AQUI OW
+//    for (Two_pin_element_2d& it : list) {
+//        Rectangle rect { it.pin1.x, it.pin2 };
+//
+//        rect.frame([&](const Coordinate_2d& c1,const Coordinate_2d& c2) {
+//            bboxRouteStateMap.edge(c1, c2) = 1;
+//
+//            SPDLOG_TRACE(log_sp, " bboxRouteStateMap.edge(({}), ({})) =1 ",c1.toString(),c2.toString());
+//        });
+//    }
 
 //check the flag of edges, if it is set to 1, then add demand on it.
-    for (Two_pin_element_2d& it : list) {
+     std::for_each(list.begin(), list.end(), [&](auto && it){
+    	 Rectangle rect { it.pin1.x, it.pin2 };
 
-        Rectangle rect { it.pin1.x, it.pin2 };
+		 rect.frame([&](const Coordinate_2d& c1,const Coordinate_2d& c2) {
+			 int& color=bboxRouteStateMap.edge(c1, c2);
+			 if (color==1) {
+				 congestion.congestionMap2d.edge(c1, c2).cur_cap += u_value;
 
-        rect.frame([&](const Coordinate_2d& c1,const Coordinate_2d& c2) {
-            int& color=bboxRouteStateMap.edge(c1, c2);
-            if (color==1) {
-                congestion.congestionMap2d.edge(c1, c2).cur_cap += u_value;
-
-                SPDLOG_TRACE(log_sp, " bboxRouteStateMap.edge(({}), ({})).cur_cap += {}",c1.toString(),c2.toString(),u_value);
-                color=0;
-            }
-        });
-    }
-
+				 SPDLOG_TRACE(log_sp, " bboxRouteStateMap.edge(({}), ({})).cur_cap += {}",c1.toString(),c2.toString(),u_value);
+				 color=0;
+			 }
+		 });
+     });
+     // AQUI TB OW
+//    for (Two_pin_element_2d& it : list) {
+//
+//        Rectangle rect { it.pin1.x, it.pin2 };
+//
+//        rect.frame([&](const Coordinate_2d& c1,const Coordinate_2d& c2) {
+//            int& color=bboxRouteStateMap.edge(c1, c2);
+//            if (color==1) {
+//                congestion.congestionMap2d.edge(c1, c2).cur_cap += u_value;
+//
+//                SPDLOG_TRACE(log_sp, " bboxRouteStateMap.edge(({}), ({})).cur_cap += {}",c1.toString(),c2.toString(),u_value);
+//                color=0;
+//            }
+//        });
+//    }
 }
 
 void Construct_2d_tree::walkL(const Coordinate_2d& a, const Coordinate_2d& b, std::function<void(const Coordinate_2d& e1, const Coordinate_2d& e2)> f) {
@@ -385,7 +409,6 @@ void Construct_2d_tree::find_saferange(Vertex_flute& a, Vertex_flute& b, int *lo
 }
 
 void Construct_2d_tree::merge_vertex(Vertex_flute& keep, Vertex_flute& deleted) {
-
     for (Vertex_flute_ptr nei : deleted.neighbor) {
         if (nei != &keep) {	//nei is not keep itself
             keep.neighbor.push_back(nei);	//add deleted's neighbor to keep

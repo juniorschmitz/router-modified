@@ -304,7 +304,7 @@ const T& EdgePlane<T>::edge(const Coordinate_2d& c1, const Coordinate_2d& c2) co
     }
     if (c1.y < c2.y) {
         return edgePlane_[c1.x][c1.y][SOUTH];
-    }
+    } // ACCIOOO
     if (c1.y > c2.y) {
         return edgePlane_[c2.x][c2.y][SOUTH];
     }
