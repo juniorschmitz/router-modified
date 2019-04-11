@@ -10,6 +10,7 @@
 #include "Construct_2d_tree.h"
 #include "MM_mazeroute.h"
 #include <boost/foreach.hpp>
+#include <omp.h>
 
 
 //#include <iostream>
@@ -43,6 +44,7 @@ bool NTHUR::RangeRouter::comp_grid_edge(const Grid_edge_element& a, const Grid_e
 void NTHUR::RangeRouter::define_interval() {
     Congestion::Statistic s = congestion.stat_congestion();
     interval_list[0].begin_value = s.max;
+//	#pragma omp parallel for
     for (u_int32_t i = 1; i < interval_list.size(); ++i) {
         interval_list[i].begin_value = s.max - ((double) i / interval_list.size()) * (s.max - 1.0);
         interval_list[i - 1].end_value = interval_list[i].begin_value;
@@ -88,11 +90,13 @@ void NTHUR::RangeRouter::insert_to_interval(Coordinate_2d coor_2d, Coordinate_2d
 }
 
 void NTHUR::RangeRouter::divide_grid_edge_into_interval() {
+//	#pragma omp parallel for
     for (int i = 0; i < congestion.congestionMap2d.getXSize() - 1; ++i) {
         for (int j = 0; j < congestion.congestionMap2d.getYSize(); ++j) {
             insert_to_interval(Coordinate_2d { i, j }, Coordinate_2d { i + 1, j });
         }
     }
+//	#pragma omp parallel for
     for (int i = 0; i < congestion.congestionMap2d.getXSize(); ++i) {
         for (int j = 0; j < congestion.congestionMap2d.getYSize() - 1; ++j) {
             insert_to_interval(Coordinate_2d { i, j }, Coordinate_2d { i, j + 1 });
@@ -234,6 +238,7 @@ void NTHUR::RangeRouter::range_router(Two_pin_element_2d& two_pin, int version) 
 void NTHUR::RangeRouter::query_range_2pin(const Rectangle& r, //
         std::vector<Two_pin_element_2d*>& twopin_list, boost::multi_array<Point_fc, 2>& gridCell) {
     static int done_counter = 0;	//only initialize once
+//	#pragma omp parallel for
     for (int x = r.upLeft.x; x <= r.downRight.x; ++x) {
         for (int y = r.upLeft.y; y <= r.downRight.y; ++y) {
             Point_fc& cell = (gridCell[x][y]);
@@ -286,6 +291,16 @@ void NTHUR::RangeRouter::specify_all_range(boost::multi_array<Point_fc, 2>& grid
 			return comp_grid_edge( a, b);
 		});
 
+//		#pragma omp parallel for
+//		for (gridEdge = ele.grid_edge_vector.begin(); gridEdge < ele.grid_edge_vector.end(); gridEdge++) {
+//			Coordinate_2d& c = gridEdge.grid;
+//			Coordinate_2d& nei = gridEdge.c2;
+//			if ((colorMap[c.x][c.y].expand != i) || (colorMap[nei.x][nei.y].expand != i)) {
+//				colorMap[c.x][c.y].expand = i;
+//				colorMap[nei.x][nei.y].expand = i;
+//				expand_range(c, nei, i);
+//			}
+//		}
 
         std::for_each(ele.grid_edge_vector.begin(), ele.grid_edge_vector.end(), [&](auto&& gridEdge) {
         	Coordinate_2d& c = gridEdge.grid;
@@ -295,7 +310,7 @@ void NTHUR::RangeRouter::specify_all_range(boost::multi_array<Point_fc, 2>& grid
 				colorMap[nei.x][nei.y].expand = i;
 				expand_range(c, nei, i);
 			}
-		}); // maybe2...
+		}); // maybe2... HERENOWBROOO
 //        for (Grid_edge_element& gridEdge : ele.grid_edge_vector) {
 //            Coordinate_2d& c = gridEdge.grid;
 //            Coordinate_2d& nei = gridEdge.c2;
@@ -330,6 +345,8 @@ void NTHUR::RangeRouter::specify_all_range(boost::multi_array<Point_fc, 2>& grid
 
     twopin_list.clear();
     int length = construct_2d_tree.two_pin_list.size();
+
+    #pragma omp parallel for
     for (int i = 0; i < length; ++i) {
         if (construct_2d_tree.two_pin_list[i].done != construct_2d_tree.done_iter) {
             twopin_list.push_back(&construct_2d_tree.two_pin_list[i]);
@@ -339,6 +356,7 @@ void NTHUR::RangeRouter::specify_all_range(boost::multi_array<Point_fc, 2>& grid
     std::sort(twopin_list.begin(), twopin_list.end(), [&](const Two_pin_element_2d *a, const Two_pin_element_2d *b) {
         return Two_pin_element_2d::comp_stn_2pin(*a,*b);});
 
+//	#pragma omp parallel for
     for (int i = 0; i < (int) twopin_list.size(); ++i) {
         if (twopin_list[i]->boxSize() == 1)
             break;
@@ -354,6 +372,5 @@ NTHUR::RangeRouter::RangeRouter(Construct_2d_tree& construct2dTree, Congestion& 
         congestion { congestion }, //
         colorMap { boost::extents[congestion.congestionMap2d.getXSize()][congestion.congestionMap2d.getYSize()] }, monotonicRouter { congestion, monotonic_enable } {
     log_sp = spdlog::get("NTHUR");
-
 }
 

@@ -24,6 +24,7 @@
 #include "../spdlog/details/spdlog_impl.h"
 #include "../spdlog/logger.h"
 #include "../spdlog/spdlog.h"
+#include <omp.h>
 
 namespace NTHUR {
 
@@ -184,6 +185,7 @@ void Congestion::init_2d_map(const RoutingRegion& rr_map) {
     for (int x = 0; x < routingSpace.getXSize(); ++x) {
         for (int y = 0; y < routingSpace.getYSize(); ++y) {
             NTHUR::Coordinate_2d c2 = Coordinate_2d { x, y };
+//			#pragma omp parallel for // not good here
             for (int z = 0; z < routingSpace.getZSize(); ++z) {
                 congestionMap2d.east(c2).max_cap += routingSpace.east(Coordinate_3d { x, y, z });
                 congestionMap2d.south(c2).max_cap += routingSpace.south(Coordinate_3d { x, y, z });

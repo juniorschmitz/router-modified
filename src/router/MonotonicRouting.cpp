@@ -17,6 +17,8 @@
 #include "../grdb/EdgePlane.h"
 #include "Congestion.h"
 #include "DataDef.h"
+#include <iostream>
+#include <omp.h>
 
 namespace NTHUR {
 
@@ -281,12 +283,16 @@ void MonotonicRouting::compute_path_total_cost_and_distance(Two_pin_element_2d& 
         Coordinate_2d& c = element.path[i];
         mn.total_cost += congestion.get_cost_2d(c, dir, element.net_id, distance);
         mn.distance += distance;
+        std::cout << "Mn total cost: " << mn.total_cost << " Mn distance: " << mn.distance << "\n";
         if (!c.isAligned(pre_dir)) {
             //if the wire need to bend, then we need to add via cost to it
             mn.via_num += congestion.via_cost;
             if (congestion.used_cost_flag == HISTORY_COST) {
+            	// std::cout << "History cost: " << HISTORY_COST << "\n";
                 mn.total_cost += congestion.via_cost;
+                // std::cout << "Congestion via cost: " << congestion.via_cost << "\n";
             }
+//            std::cout << "Mn total cost: " << mn.total_cost << "\n";
         }
         pre_dir = dir;
         dir = c;
