@@ -157,6 +157,7 @@ bool Congestion::check_path_no_overflow(const std::vector<Coordinate_2d>& path, 
 
 int Congestion::find_overflow_max(int max_zz) const {
     int overflow_max = 0;
+//	#pragma omp parallel for // new -> problema com o for
     for (const Edge_2d& edge : congestionMap2d.all()) {
         if (edge.overUsage() > overflow_max) {
             overflow_max = edge.overUsage();
@@ -185,7 +186,7 @@ void Congestion::init_2d_map(const RoutingRegion& rr_map) {
     for (int x = 0; x < routingSpace.getXSize(); ++x) {
         for (int y = 0; y < routingSpace.getYSize(); ++y) {
             NTHUR::Coordinate_2d c2 = Coordinate_2d { x, y };
-//			#pragma omp parallel for // not good here
+//			#pragma omp parallel for // new -> aqui da mtmt ruim no inicio
             for (int z = 0; z < routingSpace.getZSize(); ++z) {
                 congestionMap2d.east(c2).max_cap += routingSpace.east(Coordinate_3d { x, y, z });
                 congestionMap2d.south(c2).max_cap += routingSpace.south(Coordinate_3d { x, y, z });
@@ -205,7 +206,6 @@ int Congestion::cal_total_wirelength() const {
     int total_wl = 0;
     for (const Edge_2d& edge : congestionMap2d.all()) {
         total_wl += (int) edge.cur_cap;
-
     }
 
     log_sp->info("total wire length: {}", total_wl);
@@ -219,12 +219,15 @@ Congestion::Statistic Congestion::stat_congestion() {
     s.avg = 0;
 
     for (Edge_2d& edge : congestionMap2d.all()) {
+		#pragma omp parallel // new -> foi 13.90 107.102
+    	{
         double edgeCongestion = edge.congestion();
         if (edgeCongestion > 1.0) {
             s.min = std::min(edgeCongestion, s.min);
             s.max = std::max(edgeCongestion, s.max);
             s.avg += edgeCongestion;
         }
+    	}
     }
 
     s.avg /= congestionMap2d.num_elements();
@@ -257,7 +260,7 @@ void Congestion::update_congestion_map_insert_two_pin_net(Two_pin_element_2d& el
 //Remove a net from an edge.
 //If the net pass that edge more than once, this function will only decrease the counter.
 void Congestion::update_congestion_map_remove_two_pin_net(const std::vector<Coordinate_2d>& path, const int net_id) {
-
+	#pragma omp parallel for // new -> 14.11 110.157 segundo 13.78 108;188 = melhorou
     for (int i = path.size() - 2; i >= 0; --i) {
         Edge_2d& edge = congestionMap2d.edge(path[i], path[i + 1]);
         RoutedNetTable::iterator find_result = edge.used_net.find(net_id);

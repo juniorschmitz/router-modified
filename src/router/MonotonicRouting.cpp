@@ -51,6 +51,7 @@ void MonotonicRouting::monotonic_routing_algorithm(int x1, int y1, int x2, int y
     parent_monotonic[x1][y1] = -1;
 //Update the cost of top boundary or bottom boundary, which draw with double line.
 //The source can in left-top corner or left-bottom corner
+//	#pragma omp parallel for // aqui trava td msm
     for (int i = x1 + 1; i <= x2; ++i) {
         if (parent_monotonic[i - 1][y1] != -2) {
             cost = congestion.get_cost_2d(Coordinate_2d(i, y1), Coordinate_2d(i - 1, y1), net_id, distance);
@@ -107,6 +108,7 @@ void MonotonicRouting::monotonic_routing_algorithm(int x1, int y1, int x2, int y
     for (int i = x1 + 1; i <= x2; ++i) {
 //If source is in the left-bottom corner
         if (dir == BACK) {
+//			#pragma omp parallel for // aqui bad alloc
             for (int j = y1 + 1; j <= y2; ++j)
                 compare_two_direction_congestion(i, j, LEFT, i - 1, dir, j - 1, net_id, bound);
 
@@ -283,7 +285,7 @@ void MonotonicRouting::compute_path_total_cost_and_distance(Two_pin_element_2d& 
         Coordinate_2d& c = element.path[i];
         mn.total_cost += congestion.get_cost_2d(c, dir, element.net_id, distance);
         mn.distance += distance;
-        std::cout << "Mn total cost: " << mn.total_cost << " Mn distance: " << mn.distance << "\n";
+//        std::cout << "Mn total cost: " << mn.total_cost << " Mn distance: " << mn.distance << "\n"; // print puts
         if (!c.isAligned(pre_dir)) {
             //if the wire need to bend, then we need to add via cost to it
             mn.via_num += congestion.via_cost;

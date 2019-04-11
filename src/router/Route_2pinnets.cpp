@@ -12,6 +12,7 @@
 #include <queue>
 #include <stack>
 #include <utility>
+#include <omp.h>
 
 #include "../flute/flute-ds.h"
 #include "flute4nthuroute.h"
@@ -46,7 +47,9 @@ Route_2pinnets::Route_2pinnets(Construct_2d_tree& construct_2d_tree, RangeRouter
 }
 
 void Route_2pinnets::allocate_gridcell() {
+	#pragma omp parallel for // new -> praticamente a mesma coisa, pode continuars
     for (u_int32_t x = 0; x < gridcell.size(); ++x) {
+		#pragma omp parallel for // new -> rodou de boa, melhorou tempo
         for (u_int32_t y = 0; y < gridcell[0].size(); ++y) {
             gridcell[x][y].set(x, y);
         }
@@ -92,6 +95,7 @@ void Route_2pinnets::route_all_2pin_net() {
 void Route_2pinnets::reset_c_map_used_net_to_one() {
 
 	std::for_each(congestion.congestionMap2d.all().begin(), congestion.congestionMap2d.all().end(), [&](auto&& edge){
+//		#pragma omp parallel for // new aqui nao da
 		for (auto& routeNetTable : edge.used_net) {
 			edge.used_net[routeNetTable.first] = 1;
 		}
@@ -161,14 +165,17 @@ Coordinate_2d Route_2pinnets::determine_is_terminal_or_steiner_point(Coordinate_
 
 void Route_2pinnets::add_two_pin(int net_id, std::vector<Coordinate_2d>& path) {
     if (path.size() > 1) {
-        construct_2d_tree.two_pin_list.emplace_back();
-        Two_pin_element_2d& two_pin = construct_2d_tree.two_pin_list.back();
-        two_pin.pin1 = path.front();
-        two_pin.net_id = net_id;
-        two_pin.pin2 = path.back();
-        two_pin.path = path;
-        path.clear();
-        path.push_back(two_pin.pin2);
+//		#pragma omp parallel // novo teste parallel sem for -> aqui trava no inicio
+//    	{
+			construct_2d_tree.two_pin_list.emplace_back();
+			Two_pin_element_2d& two_pin = construct_2d_tree.two_pin_list.back();
+			two_pin.pin1 = path.front();
+			two_pin.net_id = net_id;
+			two_pin.pin2 = path.back();
+			two_pin.path = path;
+			path.clear();
+			path.push_back(two_pin.pin2);
+//    	}
     }
 }
 
@@ -230,6 +237,7 @@ void Route_2pinnets::bfs_for_find_two_pin_list(Coordinate_2d start_coor, int net
             break;
         default:
             add_two_pin(net_id, path);
+//			#pragma omp parallel for // new aqui trava no inicio ctz
             for (std::size_t i = 1; i < neighbors.size(); ++i) {
                 stack.emplace(path);
                 stack.top().emplace_back(neighbors.at(i));
@@ -243,6 +251,7 @@ void Route_2pinnets::bfs_for_find_two_pin_list(Coordinate_2d start_coor, int net
 }
 
 void Route_2pinnets::reallocate_two_pin_list() {
+//	#pragma omp parallel for // new -> nao eh bom aqui, aumenta mt o tempo
     for (u_int32_t i = 0; i < colorMap.num_elements(); ++i) {
         colorMap.data()[i].set(-1, -1);
     }
@@ -255,6 +264,7 @@ void Route_2pinnets::reallocate_two_pin_list() {
         return construct_2d_tree.NetDirtyBit[pin.net_id];
     }), v.end());
 
+//	#pragma omp parallel for // new -> aqui d[a problema terminate called recursively
     for (uint32_t netId = 0; netId < rr_map.get_netNumber(); ++netId) {
         if (construct_2d_tree.NetDirtyBit[netId]) {
             put_terminal_color_on_colormap(netId);

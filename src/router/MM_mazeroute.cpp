@@ -20,6 +20,7 @@
 #include "../spdlog/logger.h"
 #include "Congestion.h"
 #include "Construct_2d_tree.h"
+#include <omp.h>
 
 #define SPDLOG_TRACE_ON
 #include "../spdlog/spdlog.h"
@@ -187,6 +188,7 @@ void Multisource_multisink_mazeroute::setup_pqueue() {
 //
 //        )}; first trial
 
+//		#pragma omp parallel for // aqui travou no inicio
         for (int i = 0; i < t.number; ++i) {
             Coordinate_2d c { (int) t.branch[i].x, (int) t.branch[i].y };
             bool inserted = indexmap.insert( { c, static_cast<int>(vertexV.size()) }).second;
@@ -195,6 +197,7 @@ void Multisource_multisink_mazeroute::setup_pqueue() {
             }
         }
 
+//		#pragma omp parallel for // aqui ficou travado no inicio tb
         for (int i = 0; i < t.number; ++i) {
             Branch b = t.branch[i];
             Coordinate_2d c1 { (int) b.x, (int) b.y };
@@ -275,8 +278,11 @@ bool Multisource_multisink_mazeroute::mm_maze_route_p(Two_pin_element_2d &ieleme
 
 //    std::for_each(boundary_l, boundary_r)
 
+    // se travar aqui
+	#pragma omp parallel for // aqui travou no fim -> mentira -- coud be better
     for (int x = boundary_l; x <= boundary_r; ++x) {
-        for (int y = boundary_b; y <= boundary_t; ++y) {
+		#pragma omp parallel for // aqui travou no fim -> mentira 1367 -- melhorou
+    	for (int y = boundary_b; y <= boundary_t; ++y) {
             mmm_map[x][y].walkableID = visit_counter;
         }
     }

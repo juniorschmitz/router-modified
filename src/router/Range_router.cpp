@@ -346,7 +346,7 @@ void NTHUR::RangeRouter::specify_all_range(boost::multi_array<Point_fc, 2>& grid
     twopin_list.clear();
     int length = construct_2d_tree.two_pin_list.size();
 
-    #pragma omp parallel for
+//  #pragma omp parallel for // em alguns casos travava, testando retirar esse
     for (int i = 0; i < length; ++i) {
         if (construct_2d_tree.two_pin_list[i].done != construct_2d_tree.done_iter) {
             twopin_list.push_back(&construct_2d_tree.two_pin_list[i]);

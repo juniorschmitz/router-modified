@@ -395,17 +395,20 @@ void Construct_2d_tree::find_saferange(Vertex_flute& a, Vertex_flute& b, int *lo
         return i < j;
     };
 //Horizontal edge doing vertical shifting
-    if (dir == HOR) {
-        *high = std::min(*high, findY(a, greater)->c.y);
-        *high = std::min(*high, findY(b, greater)->c.y);
-        *low = std::max(*low, findY(a, less)->c.y);
-        *low = std::max(*low, findY(b, less)->c.y);
-    } else {
-        *high = min(*high, findX(a, greater)->c.x);
-        *high = min(*high, findX(b, greater)->c.x);
-        *low = max(*low, findX(a, less)->c.x);
-        *low = max(*low, findX(b, less)->c.x);
-    }
+	#pragma omp parallel // tentando parallel sem for
+    {
+		if (dir == HOR) {
+			*high = std::min(*high, findY(a, greater)->c.y);
+			*high = std::min(*high, findY(b, greater)->c.y);
+			*low = std::max(*low, findY(a, less)->c.y);
+			*low = std::max(*low, findY(b, less)->c.y);
+		} else {
+			*high = min(*high, findX(a, greater)->c.x);
+			*high = min(*high, findX(b, greater)->c.x);
+			*low = max(*low, findX(a, less)->c.x);
+			*low = max(*low, findX(b, less)->c.x);
+		}
+	}
 }
 
 void Construct_2d_tree::merge_vertex(Vertex_flute& keep, Vertex_flute& deleted) {
@@ -584,6 +587,7 @@ void Construct_2d_tree::traverse_tree(double& ori_cost, std::vector<Vertex_flute
                         find_saferange(a, b, &low, &high, HOR);		//compute safe range
                         best_cost = ori_cost;
                         cur_cost = (ori_cost) - compute_L_pattern_cost(a.c, b.c, -1);
+						#pragma omp parallel for // new -> aparentou melhorias, manter
                         for (int pos = low; pos <= high; ++pos) {
                             tmp_cost = cur_cost + compute_L_pattern_cost(Coordinate_2d { a.c.x, pos }, Coordinate_2d { b.c.x, pos }, -1);
                             if (tmp_cost < best_cost) {
@@ -602,6 +606,7 @@ void Construct_2d_tree::traverse_tree(double& ori_cost, std::vector<Vertex_flute
                         find_saferange(a, b, &low, &high, VER);		//compute safe range
                         best_cost = ori_cost;
                         cur_cost = (ori_cost) - compute_L_pattern_cost(a.c, b.c, -1);
+						#pragma omp parallel for // new -> parece ter piorado, testando novamente... 14.43 108.601 melhorou na vdd 13.80 104.133
                         for (int pos = low; pos <= high; ++pos) {
                             tmp_cost = cur_cost + compute_L_pattern_cost(Coordinate_2d { pos, a.c.y }, Coordinate_2d { pos, b.c.y }, -1);
                             if (tmp_cost < best_cost) {
@@ -647,6 +652,7 @@ void Construct_2d_tree::edge_shifting(TreeFlute& t, int j) {
 //Create vertex
     vertex_fl.reserve(degSize);
 
+//	#pragma omp parallel for // new -> problema std out of range
     for (int i = 0; i < t.deg; ++i) {
 
         Coordinate_2d c { (int) t.branch[i].x, (int) t.branch[i].y };
@@ -656,6 +662,7 @@ void Construct_2d_tree::edge_shifting(TreeFlute& t, int j) {
         }
 
     }
+//	#pragma omp parallel for // new -> problema std out of range
     for (std::size_t i = t.deg; i < degSize; ++i) {
         Coordinate_2d c { (int) t.branch[i].x, (int) t.branch[i].y };
         bool inserted = indexmap.insert( { c, static_cast<int>(vertex_fl.size()) }).second;
@@ -666,6 +673,7 @@ void Construct_2d_tree::edge_shifting(TreeFlute& t, int j) {
     }
 
 //Create edge
+//	#pragma omp parallel for // new -> invalid pointer
     for (std::size_t i = 0; i < degSize; ++i) {
         Branch b = t.branch[i];
         Coordinate_2d c1 { (int) b.x, (int) b.y };
@@ -686,9 +694,10 @@ void Construct_2d_tree::edge_shifting(TreeFlute& t, int j) {
         }
     }
 
-    for (std::size_t i = 0; i < vertex_fl.size(); ++i) {
-        SPDLOG_TRACE(log_sp, "vertex_fl[i] {} ", vertex_fl[i].toString());
-    }
+    // retirando log
+//    for (std::size_t i = 0; i < vertex_fl.size(); ++i) {
+//        SPDLOG_TRACE(log_sp, "vertex_fl[i] {} ", vertex_fl[i].toString());
+//    }
 
     for (Vertex_flute& fl : vertex_fl) {
         fl.visit = 0;
@@ -696,9 +705,10 @@ void Construct_2d_tree::edge_shifting(TreeFlute& t, int j) {
 
     traverse_tree(ori_cost, vertex_fl);	// dfs to find 2 adjacent Steiner points(h or v edge) and do edge_shifting
 
-    for (std::size_t i = 0; i < degSize; ++i) {
-        SPDLOG_TRACE(log_sp, "after traverse_tree {} ", vertex_fl[i].toString());
-    }
+    // retirando log
+//    for (std::size_t i = 0; i < degSize; ++i) {
+//        SPDLOG_TRACE(log_sp, "after traverse_tree {} ", vertex_fl[i].toString());
+//    }
 
 //Output the result (2-pin lists) to a Tree structure in DFS order
 //1. make sure every 2-pin list have not been visited
@@ -757,6 +767,7 @@ Construct_2d_tree::Construct_2d_tree(const RoutingParameters& routingparam,const
 
 //Make a 2-pin net list without group by net
     for (Two_pin_list_2d& netList : net_2pin_list) {
+//		#pragma omp parallel for // new -> nao rola openmp for com dois pontos
         for (Two_pin_element_2d& ele : netList) {
             two_pin_list.push_back(ele);
         }
@@ -767,6 +778,7 @@ Construct_2d_tree::Construct_2d_tree(const RoutingParameters& routingparam,const
     congestion.used_cost_flag = HISTORY_COST;
     BOXSIZE_INC = routingparam.get_init_box_size_p2();
 
+//	#pragma omp parallel for // new -> problemas com os breaks
     for (congestion.cur_iter = 1, done_iter = congestion.cur_iter; congestion.cur_iter <= routingparam.get_iteration_p2(); ++congestion.cur_iter, done_iter = congestion.cur_iter) //do n-1 times
             {
 
